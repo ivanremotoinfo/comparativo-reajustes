@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comparativo de Reajustes | SuporteADV</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0d0d0d; color: #e0e0e0; padding: 24px 16px; }
+  .container { max-width: 750px; margin: 0 auto; }
+
+  .header { text-align: center; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid #222; }
+  h1 { font-size: 1.5rem; color: #008080; margin-bottom: 6px; }
+  .subtitle { font-size: 0.88rem; color: #888; line-height: 1.5; }
+  .brand { font-size: 0.78rem; margin-top: 8px; color: #555; }
+  .brand span.s { color: #8B00FF; font-weight: 700; }
+  .brand span.a { color: #008080; font-weight: 700; }
+
+  .card { background: #111; border-radius: 10px; border: 1px solid #222; border-left: 3px solid #8B00FF; padding: 20px 22px; margin-bottom: 14px; transition: border-left-color 0.2s; }
+  .card:hover { border-left-color: #008080; }
+  .card-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #008080; font-weight: 700; margin-bottom: 16px; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+  @media (max-width: 520px) { .form-grid { grid-template-columns: 1fr; } }
+  .field.full { grid-column: 1 / -1; }
+
+  .field label { display: block; font-size: 0.78rem; color: #888; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .field input, .field select {
+    width: 100%; padding: 9px 11px; border: 1.5px solid #333; border-radius: 6px;
+    font-size: 0.95rem; color: #fff; background: #1a1a1a; transition: border-color 0.2s;
+  }
+  .field input:focus, .field select:focus { outline: none; border-color: #008080; box-shadow: 0 0 0 2px rgba(0,128,128,0.2); }
+  .field select option { background: #1a1a1a; }
+
+  .info-box { background: #0d1a1a; border: 1px solid #1a3a3a; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 0.82rem; color: #666; line-height: 1.6; }
+  .info-box b { color: #008080; }
+
+  button.calcular {
+    background: #008080; color: #fff; border: none; padding: 10px 26px;
+    border-radius: 6px; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.07em;
+    cursor: pointer; transition: background 0.18s, box-shadow 0.18s; text-transform: uppercase;
+  }
+  button.calcular:hover { background: #006666; box-shadow: 0 0 10px rgba(0,128,128,0.4); }
+  button.calcular:disabled { background: #333; color: #666; cursor: not-allowed; }
+
+  .loading { display: none; align-items: center; gap: 8px; color: #008080; font-size: 0.85rem; margin-left: 12px; }
+  .loading.visible { display: flex; }
+  .spinner { width: 16px; height: 16px; border: 2px solid #333; border-top-color: #008080; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Resultado */
+  .resultado { margin-top: 14px; display: none; }
+  .resultado.visible { display: block; }
+  .resultado-titulo { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #008080; font-weight: 700; margin-bottom: 14px; }
+
+  /* Cards comparativos */
+  .cards-comp { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .comp-card {
+    background: #111; border-radius: 10px; border: 1px solid #222;
+    padding: 16px 14px; text-align: center; transition: border-color 0.2s;
+    position: relative;
+  }
+  .comp-card.melhor { border-color: #00ff00; background: #0a1a0a; }
+  .comp-card.pior { border-color: #ff4444; background: #1a0a0a; }
+  .comp-card .badge {
+    position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
+    font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 10px;
+    text-transform: uppercase; white-space: nowrap;
+  }
+  .comp-card.melhor .badge { background: #00ff00; color: #000; }
+  .comp-card.pior .badge { background: #ff4444; color: #fff; }
+  .comp-card .indice-nome { font-size: 0.75rem; color: #555; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .comp-card .pct { font-size: 1.3rem; font-weight: 700; font-family: 'Courier New', monospace; color: #00ff00; margin-bottom: 4px; }
+  .comp-card.pior .pct { color: #ff4444; }
+  .comp-card .novo-valor { font-size: 0.9rem; font-weight: 700; color: #ccc; font-family: 'Courier New', monospace; }
+  .comp-card .aumento { font-size: 0.75rem; color: #555; margin-top: 4px; }
+
+  .divider { border: none; border-top: 1px solid #222; margin: 16px 0; }
+
+  /* Tabela comparativa */
+  .tabela-section { background: #111; border-radius: 10px; border: 1px solid #222; padding: 16px; margin-bottom: 14px; }
+  .tabela-section .resultado-titulo { margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th { text-align: left; color: #555; padding: 7px 10px; border-bottom: 1px solid #222; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  td { color: #999; padding: 7px 10px; border-bottom: 1px solid #1a1a1a; }
+  tr:hover td { background: #151515; }
+  td.dest { color: #00ff00; font-weight: 700; font-family: 'Courier New', monospace; }
+  td.dest-neg { color: #ff4444; font-weight: 700; font-family: 'Courier New', monospace; }
+  td.melhor-cel { color: #00ff00; font-weight: 700; }
+  td.pior-cel { color: #ff4444; }
+
+  /* Barra de progresso */
+  .barra-wrap { margin-top: 6px; }
+  .barra-bg { background: #1a1a1a; border-radius: 4px; height: 6px; overflow: hidden; }
+  .barra-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+
+  .erro { background: #1a0a0a; border: 1px solid #4a1a1a; border-radius: 8px; padding: 14px 16px; color: #ff6666; font-size: 0.88rem; margin-top: 14px; display: none; }
+  .erro.visible { display: block; }
+  .aviso { font-size: 0.72rem; color: #444; margin-top: 12px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>Comparativo de Reajustes</h1>
+    <p class="subtitle">Compare o mesmo valor reajustado por diferentes índices (IPCA, IGP-M, INPC, IPCA-E) no mesmo período.</p>
+    <p class="brand"><span class="s">suporte</span><span class="a">ADV</span>.br — Ferramentas para Advogados</p>
+  </div>
+
+  <div class="card">
+    <div class="info-box">
+      <b>Para que serve?</b> Útil para comparar qual índice é mais vantajoso em negociações de contrato, revisar cláusulas de reajuste ou apresentar em audiência a diferença entre índices num mesmo período.
+    </div>
+    <div class="card-label">Dados</div>
+    <div class="form-grid">
+      <div class="field full">
+        <label>Valor de referência (R$)</label>
+        <input type="number" id="valor" placeholder="Ex: 2000,00" step="0.01" min="0">
+      </div>
+      <div class="field">
+        <label>Data inicial</label>
+        <input type="month" id="dataInicio">
+      </div>
+      <div class="field">
+        <label>Data final</label>
+        <input type="month" id="dataFim">
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px">
+      <button class="calcular" id="btnCalc" onclick="calcular()">COMPARAR</button>
+      <div class="loading" id="loading"><div class="spinner"></div><span>Buscando todos os índices...</span></div>
+    </div>
+  </div>
+
+  <div class="erro" id="erro"></div>
+
+  <div class="resultado" id="resultado">
+    <div class="resultado-titulo">Comparativo — <span id="res-periodo">—</span></div>
+    <div class="cards-comp" id="cards-comp"></div>
+
+    <div class="tabela-section">
+      <div class="resultado-titulo">Tabela Comparativa Detalhada</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Índice</th>
+            <th>% Acumulado</th>
+            <th>Valor reajustado</th>
+            <th>Aumento R$</th>
+            <th>vs IPCA</th>
+          </tr>
+        </thead>
+        <tbody id="tabela-body"></tbody>
+      </table>
+    </div>
+
+    <p class="aviso">⚠️ Dados obtidos em tempo real do Banco Central do Brasil (SGS/BCB). O índice mais favorável depende do ponto de vista — para o locador, o maior; para o locatário, o menor.</p>
+  </div>
+
+</div>
+
+<script>
+const indices = [
+  { codigo: '433',  nome: 'IPCA',   desc: 'Inflação oficial (IBGE)', cor: '#008080' },
+  { codigo: '189',  nome: 'IGP-M',  desc: 'Índice FGV',              cor: '#8B00FF' },
+  { codigo: '188',  nome: 'INPC',   desc: 'Trabalhadores (IBGE)',     cor: '#ffaa00' },
+  { codigo: '7478', nome: 'IPCA-E', desc: 'Prévia do IPCA (IBGE)',    cor: '#00aaff' },
+];
+
+function fmtMoeda(v) {
+  return 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function fmtPct(v) {
+  return (v >= 0 ? '+' : '') + v.toFixed(4).replace('.', ',') + '%';
+}
+function fmtMes(str) {
+  const [ano, mes] = str.split('-');
+  const nomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  return `${nomes[parseInt(mes)-1]}/${ano}`;
+}
+
+function showErro(msg) {
+  document.getElementById('erro').textContent = msg;
+  document.getElementById('erro').classList.add('visible');
+  document.getElementById('resultado').classList.remove('visible');
+}
+function hideErro() { document.getElementById('erro').classList.remove('visible'); }
+
+async function fetchIndice(codigo, dtIni, dtFim) {
+  const fmt = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+  const url = `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${codigo}/dados?formato=json&dataInicial=${fmt(dtIni)}&dataFinal=${fmt(dtFim)}`;
+  const proxies = [
+    async () => { const r = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`); if(!r.ok) throw 0; const j=await r.json(); return j.contents?JSON.parse(j.contents):j; },
+    async () => { const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`); if(!r.ok) throw 0; const j=await r.json(); return j.contents?JSON.parse(j.contents):j; },
+  ];
+  for (const fn of proxies) {
+    try { const d = await fn(); if(Array.isArray(d)&&d.length>0) return d; } catch(_) {}
+  }
+  return null;
+}
+
+async function calcular() {
+  hideErro();
+  const valor = parseFloat(document.getElementById('valor').value);
+  if (!valor || valor <= 0) return showErro('Informe um valor válido.');
+
+  const iniStr = document.getElementById('dataInicio').value;
+  const fimStr = document.getElementById('dataFim').value;
+  if (!iniStr || !fimStr) return showErro('Informe as datas.');
+  if (iniStr >= fimStr) return showErro('A data inicial deve ser anterior à final.');
+
+  const [anoIni, mesIni] = iniStr.split('-').map(Number);
+  const [anoFim, mesFim] = fimStr.split('-').map(Number);
+  const dtIni = new Date(anoIni, mesIni - 1, 1);
+  const dtFim = new Date(anoFim, mesFim - 1, 1);
+
+  const btn = document.getElementById('btnCalc');
+  const loading = document.getElementById('loading');
+  btn.disabled = true;
+  loading.classList.add('visible');
+
+  try {
+    // Busca todos os índices em paralelo
+    const resultados = await Promise.all(
+      indices.map(async idx => {
+        const dados = await fetchIndice(idx.codigo, dtIni, dtFim);
+        if (!dados) return { ...idx, fator: null, pct: null, novoValor: null };
+        let fator = 1;
+        dados.forEach(d => { fator *= (1 + parseFloat(d.valor.replace(',','.')) / 100); });
+        const pct = (fator - 1) * 100;
+        const novoValor = valor * fator;
+        return { ...idx, fator, pct, novoValor, meses: dados.length };
+      })
+    );
+
+    const validos = resultados.filter(r => r.pct !== null);
+    if (validos.length === 0) throw new Error('Não foi possível buscar nenhum índice. Tente novamente.');
+
+    const maxPct = Math.max(...validos.map(r => r.pct));
+    const minPct = Math.min(...validos.map(r => r.pct));
+    const ipcaRes = resultados.find(r => r.nome === 'IPCA');
+
+    // Período
+    document.getElementById('res-periodo').textContent = `${fmtMes(iniStr)} a ${fmtMes(fimStr)}`;
+
+    // Cards
+    const cardsDiv = document.getElementById('cards-comp');
+    cardsDiv.innerHTML = '';
+    validos.sort((a,b) => b.pct - a.pct).forEach(r => {
+      const isMelhor = r.pct === maxPct;
+      const isPior = r.pct === minPct && minPct !== maxPct;
+      const card = document.createElement('div');
+      card.className = `comp-card${isMelhor ? ' melhor' : isPior ? ' pior' : ''}`;
+      card.innerHTML = `
+        ${isMelhor ? '<div class="badge">Maior reajuste</div>' : ''}
+        ${isPior ? '<div class="badge">Menor reajuste</div>' : ''}
+        <div class="indice-nome">${r.nome}</div>
+        <div class="pct">${fmtPct(r.pct)}</div>
+        <div class="novo-valor">${fmtMoeda(r.novoValor)}</div>
+        <div class="aumento">+ ${fmtMoeda(r.novoValor - valor)}</div>
+        <div class="barra-wrap">
+          <div class="barra-bg"><div class="barra-fill" style="width:${(r.pct/maxPct*100).toFixed(1)}%;background:${r.cor}"></div></div>
+        </div>`;
+      cardsDiv.appendChild(card);
+    });
+
+    // Tabela
+    const tbody = document.getElementById('tabela-body');
+    tbody.innerHTML = '';
+    validos.sort((a,b) => b.pct - a.pct).forEach(r => {
+      const vsIPCA = ipcaRes && ipcaRes.pct ? r.pct - ipcaRes.pct : null;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="color:${r.cor};font-weight:700">${r.nome} <span style="color:#444;font-size:0.72rem;font-weight:400">${r.desc}</span></td>
+        <td class="${r.pct===maxPct?'melhor-cel':r.pct===minPct?'pior-cel':''}">${fmtPct(r.pct)}</td>
+        <td class="dest">${fmtMoeda(r.novoValor)}</td>
+        <td>${fmtMoeda(r.novoValor - valor)}</td>
+        <td class="${vsIPCA===null?'':vsIPCA>0?'melhor-cel':'pior-cel'}">${vsIPCA===null?'—':fmtPct(vsIPCA)}</td>`;
+      tbody.appendChild(tr);
+    });
+
+    // Linha diferença
+    if (validos.length >= 2) {
+      const diff = validos.reduce((a,b)=>a.pct>b.pct?a:b).novoValor - validos.reduce((a,b)=>a.pct<b.pct?a:b).novoValor;
+      const tr = document.createElement('tr');
+      tr.style.background = '#111';
+      tr.innerHTML = `
+        <td style="color:#555;font-weight:700" colspan="3">Diferença entre maior e menor reajuste</td>
+        <td class="dest" colspan="2">${fmtMoeda(diff)}</td>`;
+      tbody.appendChild(tr);
+    }
+
+    document.getElementById('resultado').classList.add('visible');
+
+  } catch(e) {
+    showErro(e.message || 'Erro ao calcular. Tente novamente.');
+  } finally {
+    btn.disabled = false;
+    loading.classList.remove('visible');
+  }
+}
+
+// Datas padrão: últimos 12 meses
+const hoje = new Date();
+const ini = new Date(hoje.getFullYear() - 1, hoje.getMonth(), 1);
+document.getElementById('dataInicio').value = `${ini.getFullYear()}-${String(ini.getMonth()+1).padStart(2,'0')}`;
+document.getElementById('dataFim').value = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const f = document.activeElement;
+    if (f && (f.tagName === 'INPUT' || f.tagName === 'SELECT')) calcular();
+  }
+});
+</script>
+</body>
+</html>
